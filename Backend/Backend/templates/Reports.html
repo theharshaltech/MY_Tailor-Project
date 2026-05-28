@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports & Analytics – My Tailor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+    --chart-bg: #fff;
+    --chart-grid: #f1f3f9;
+}
+.report-card { border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.05); transition:transform 0.3s ease; }
+.report-card:hover { transform: translateY(-2px); }
+.kpi-indicator { font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.indicator-up { background: rgba(25, 135, 84, 0.1); color: #198754; }
+.indicator-down { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+.progress-h { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+.progress-h-bar { height: 100%; border-radius: 4px; transition: width 1s ease-in-out; }
+.insight-item { border-left: 3px solid var(--mt-gold); padding-left: 1rem; margin-bottom: 1.25rem; }
+.table-modern { font-size: 0.88rem; }
+.table-modern thead th { background: #f8fafc; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; border: none; padding: 12px 16px; }
+.table-modern tbody td { padding: 12px 16px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+.status-color-0 { color: #c8973a !important; }
+.status-color-1 { color: #1a2340 !important; }
+.status-color-2 { color: #10b981 !important; }
+.status-color-3 { color: #ef4444 !important; }
+.status-color-4 { color: #3b82f6 !important; }
+</style>
+</head>
+<body style="background:#f8f9fa">
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<nav class="navbar navbar-expand-lg mt-navbar sticky-top shadow-sm">
+  <div class="container-fluid px-3">
+    <button class="btn btn-sm me-2 d-lg-none" style="background:rgba(255,255,255,.1);color:#fff;border:none" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button>
+    <a class="navbar-brand" href="{{ url_for('index') }}">My<span>Tailor</span></a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 text-white small me-2">
+        <div class="nav-avatar">{{ (name or 'A')[:1]|upper }}</div>
+        <span class="d-none d-sm-inline">{{ name|default('Admin') }}</span>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn btn-sm btn-logout ms-1">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <!-- SIDEBAR -->
+  <div class="mt-sidebar" id="sidebar">
+    <div class="sidebar-section-label">Admin Panel</div>
+    <nav class="nav flex-column">
+      <a href="{{ url_for('admin_dashboard') }}" class="nav-link"><i class="bi bi-house me-2"></i>Dashboard</a>
+      <a href="{{ url_for('manage_customers') }}" class="nav-link"><i class="bi bi-people me-2"></i>Manage Customers</a>
+      <a href="{{ url_for('manage_tailors') }}" class="nav-link"><i class="bi bi-scissors me-2"></i>Manage Tailors</a>
+      <a href="{{ url_for('manage_orders') }}" class="nav-link"><i class="bi bi-box-seam me-2"></i>All Orders</a>
+      <a href="{{ url_for('reports') }}" class="nav-link active"><i class="bi bi-bar-chart me-2"></i>Reports</a>
+    </nav>
+    <div class="sidebar-section-label">System</div>
+    <nav class="nav flex-column">
+      <a href="{{ url_for('admin_profile') }}" class="nav-link"><i class="bi bi-person-gear me-2"></i>My Profile</a>
+      <a href="{{ url_for('logout') }}" class="nav-link"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+    </nav>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex-grow-1 p-3 p-md-4" style="min-width:0">
+    
+    <!-- HEADER -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+      <div>
+        <h4 class="fw-bold mb-0" style="color:var(--mt-navy)">Reports & Analytics Dashboard</h4>
+        <p class="text-muted small mb-0">Monitor platform performance and growth metrics.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <div class="input-group input-group-sm" style="width: 280px;">
+           <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar3"></i></span>
+           <input type="text" class="form-control border-start-0" value="Last 12 Months" readonly>
+           <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"></button>
+           <ul class="dropdown-menu dropdown-menu-end">
+             <li><a class="dropdown-item" href="#">Last 30 Days</a></li>
+             <li><a class="dropdown-item" href="#">Last 6 Months</a></li>
+             <li><a class="dropdown-item" href="#">This Year</a></li>
+           </ul>
+        </div>
+        <a href="{{ url_for('admin_reports_pdf') }}" class="btn btn-navy btn-sm d-flex align-items-center gap-2">
+          <i class="bi bi-file-earmark-pdf"></i> Download PDF
+        </a>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3 col-6">
+        <div class="card report-card p-3">
+          <div class="text-muted small mb-1">Total Platform Growth</div>
+          <div class="d-flex align-items-baseline gap-2">
+            <h3 class="fw-bold mb-0">{{ stats.growth }}%</h3>
+            <span class="kpi-indicator indicator-up"><i class="bi bi-arrow-up"></i> Monthly</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card report-card p-3">
+          <div class="text-muted small mb-1">Total Orders</div>
+          <h3 class="fw-bold mb-0">{{ stats.orders }}</h3>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card report-card p-3">
+          <div class="text-muted small mb-1">Completed</div>
+          <h3 class="fw-bold mb-0 text-success">{{ stats.completed }}</h3>
+        </div>
+      </div>
+      <div class="col-md-2 col-6">
+        <div class="card report-card p-3">
+          <div class="text-muted small mb-1">Pending</div>
+          <h3 class="fw-bold mb-0 text-warning">{{ stats.pending }}</h3>
+        </div>
+      </div>
+      <div class="col-md-3 col-12">
+        <div class="card report-card p-3">
+          <div class="text-muted small mb-1">Avg Platform Rating</div>
+          <div class="d-flex align-items-center gap-2">
+            <h3 class="fw-bold mb-0">{{ stats.avg_rating }}</h3>
+            <div class="text-warning small">
+                {% for i in range(5) %}<i class="bi bi-star{{ '-fill' if i < stats.avg_rating|int else '' }}"></i>{% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-8">
+        <div class="card report-card p-4 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h6 class="fw-bold mb-0">Order Volume Overview</h6>
+            <div class="dropdown">
+              <button class="btn btn-sm btn-light border" data-bs-toggle="dropdown">Tailor: {{ 'All' if not selected_tailor else all_tailors|selectattr('tailor_id', 'equalto', selected_tailor)|first|attr('shop_name') }} <i class="bi bi-chevron-down ms-1"></i></button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{{ url_for('reports') }}">All Tailors</a></li>
+                {% for t in all_tailors %}
+                <li><a class="dropdown-item" href="{{ url_for('reports', tailor_id=t.tailor_id) }}">{{ t.shop_name }}</a></li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          <canvas id="revenueLineChart" height="280"></canvas>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card report-card p-4 h-100">
+          <h6 class="fw-bold mb-4">Orders by Status</h6>
+          <canvas id="orderStatusDonutChart" height="280"></canvas>
+          <div class="mt-4">
+             {% for item in status_list %}
+             <div class="d-flex justify-content-between small mb-1">
+               <span><i class="bi bi-circle-fill me-2 status-color-{{ loop.index0 % 5 }}"></i>{{ item.status }}</span>
+               <span class="fw-600">{{ item.count }}</span>
+             </div>
+             {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLES & LISTS ROW -->
+    <div class="row g-4 mb-4">
+      <!-- TOP TAILORS -->
+      <div class="col-lg-4">
+        <div class="card report-card p-4 h-100">
+          <h6 class="fw-bold mb-4">Top Tailors by Fulfillment</h6>
+          {% for t in top_tailors %}
+          <div class="mb-4">
+            <div class="d-flex justify-content-between small mb-1">
+                <span class="fw-600 text-dark">{{ t.shop_name }}</span>
+                <span class="text-gold">{{ t.orders }} Completed</span>
+            </div>
+            <div class="progress-h">
+                {% set progress_width = (t.orders / (top_tailors[0].orders or 1)) * 100 %}
+                <div class="progress-h-bar bg-gold dynamic-width" data-width="{{ progress_width }}"></div>
+            </div>
+            <div class="d-flex justify-content-between mt-1" style="font-size: 0.7rem;">
+                <span class="text-muted">Total Activity</span>
+                <span class="text-warning">⭐ {{ "{:.1f}".format(t.avg_rating|default(5)) }}</span>
+            </div>
+          </div>
+          {% endfor %}
+          <a href="{{ url_for('manage_tailors') }}" class="btn btn-outline-gold btn-sm w-100 mt-auto">View All Tailors</a>
+        </div>
+      </div>
+
+      <!-- STATUS DISTRIBUTION TABLE -->
+      <div class="col-lg-8">
+        <div class="card report-card p-4 h-100">
+          <h6 class="fw-bold mb-4">Order Status Distribution</h6>
+          <div class="table-responsive">
+            <table class="table table-modern mb-0">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th class="text-center">Orders</th>
+                  <th class="text-center">Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in status_list %}
+                <tr>
+                  <td>
+                    <span class="badge rounded-pill px-3 py-1 bg-light text-dark border">
+                        <i class="bi bi-circle-fill me-1 status-color-{{ loop.index0 % 5 }}"></i>
+                        {{ item.status }}
+                    </span>
+                  </td>
+                  <td class="text-center fw-600">{{ item.count }}</td>
+                  <td class="text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <div class="flex-grow-1 progress-h" style="width: 60px;">
+                            <div class="progress-h-bar dynamic-width" style="background: #1a2340;" data-width="{{ item.percentage|default(0) }}"></div>
+                        </div>
+                        <span class="small">{{ item.percentage }}%</span>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THIRD ROW -->
+    <div class="row g-4 mb-4">
+      <!-- TOP DRESSES -->
+      <div class="col-lg-4">
+        <div class="card report-card p-4 mb-4">
+          <h6 class="fw-bold mb-3">Top Dress Types</h6>
+          {% for d in top_dresses %}
+          <div class="d-flex justify-content-between align-items-center p-2 mb-2 rounded border-start border-4 border-gold bg-light">
+             <span class="fw-600 small">{{ d.dress_type }}</span>
+             <span class="badge bg-navy">{{ d.count }} Orders</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="card report-card p-4">
+            <h6 class="fw-bold mb-3">New Registrations (This Month)</h6>
+            <div class="row text-center g-2">
+                <div class="col-6">
+                    <div class="p-3 rounded bg-light">
+                        <div class="h3 fw-bold text-navy mb-0">{{ new_regs.customers }}</div>
+                        <div class="small text-muted">Customers</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 rounded bg-light">
+                        <div class="h3 fw-bold text-gold mb-0">{{ new_regs.tailors }}</div>
+                        <div class="small text-muted">Tailors</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- RECENT ORDERS -->
+      <div class="col-lg-8">
+        <div class="card report-card p-4">
+          <h6 class="fw-bold mb-4">Recent Platform Activity</h6>
+          <div class="table-responsive">
+            <table class="table table-modern">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Tailor</th>
+                        <th>Dress Type</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in recent_orders %}
+                    <tr>
+                        <td class="fw-600">#{{ o.order_id }}</td>
+                        <td>{{ o.customer_name }}</td>
+                        <td><span class="small text-muted">{{ o.shop_name }}</span></td>
+                        <td>{{ o.dress_type }}</td>
+                        <td>
+                            {% set status_class = 'secondary' %}
+                            {% if o.status == 'Completed' %}{% set status_class = 'success' %}{% endif %}
+                            {% if o.status == 'Pending' %}{% set status_class = 'warning' %}{% endif %}
+                            {% if o.status == 'Cancelled' %}{% set status_class = 'danger' %}{% endif %}
+                            <span class="badge bg-{{ status_class }}">{{ o.status }}</span>
+                        </td>
+                        <td class="small text-muted">{{ o.order_date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+          </div>
+          <a href="{{ url_for('manage_orders') }}" class="btn btn-navy btn-sm w-100">View All Platform Orders</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADDITIONAL INSIGHTS -->
+    <div class="card report-card p-4 mb-4">
+        <h6 class="fw-bold mb-4">Additional Insights</h6>
+        <div class="row g-4">
+            <div class="col-md-2 col-6">
+                <div class="insight-item">
+                    <div class="text-muted small">Total Customers</div>
+                    <div class="h5 fw-bold mb-0">{{ insights.total_customers }}</div>
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="insight-item">
+                    <div class="text-muted small">Active Tailors</div>
+                    <div class="h5 fw-bold mb-0">{{ insights.total_tailors }}</div>
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="insight-item" style="border-color: #3b82f6;">
+                    <div class="text-muted small">Dress Types</div>
+                    <div class="h5 fw-bold mb-0">{{ insights.total_services }}</div>
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <div class="insight-item" style="border-color: #10b981;">
+                    <div class="text-muted small">User Reviews</div>
+                    <div class="h5 fw-bold mb-0">{{ insights.total_reviews }}</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="insight-item" style="border-color: var(--mt-navy);">
+                    <div class="text-muted small">Completion Rate</div>
+                    <div class="h5 fw-bold mb-0">{% if stats.orders > 0 %}{{ (stats.completed / stats.orders * 100)|round(1) }}{% else %}0{% endif %}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Hidden data for charts to avoid IDE syntax errors in script tag -->
+<div id="reportsData" style="display:none" 
+     data-monthly-labels='{{ monthly|map(attribute="month")|list|tojson|safe }}'
+     data-monthly-revenue='{{ monthly|map(attribute="total_orders")|list|tojson|safe }}'
+     data-status-labels='{{ status_dist.labels|tojson|safe }}'
+     data-status-counts='{{ status_dist.counts|tojson|safe }}'>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('show');document.getElementById('sidebarOverlay').classList.toggle('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('show');document.getElementById('sidebarOverlay').classList.remove('show');}
+
+// Apply dynamic widths
+document.querySelectorAll('.dynamic-width').forEach(el => {
+    const w = el.getAttribute('data-width');
+    if(w) el.style.width = w + '%';
+});
+
+// Data from hidden element
+const reportsDataEl = document.getElementById('reportsData');
+const chartLabels_Monthly = JSON.parse(reportsDataEl.dataset.monthlyLabels || '[]');
+const chartData_Revenue = JSON.parse(reportsDataEl.dataset.monthlyRevenue || '[]');
+const chartLabels_Status = JSON.parse(reportsDataEl.dataset.statusLabels || '[]');
+const chartData_Status = JSON.parse(reportsDataEl.dataset.statusCounts || '[]');
+
+// Chart.js - Revenue Line Chart
+const revCtx = document.getElementById('revenueLineChart').getContext('2d');
+new Chart(revCtx, {
+    type: 'line',
+    data: {
+        labels: chartLabels_Monthly,
+        datasets: [{
+            label: 'Monthly Orders',
+            data: chartData_Revenue,
+            borderColor: '#c8973a',
+            backgroundColor: 'rgba(200, 151, 58, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#c8973a',
+            pointRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: '#f1f3f9' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// Chart.js - Orders Donut Chart
+const statusCtx = document.getElementById('orderStatusDonutChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: chartLabels_Status,
+        datasets: [{
+            data: chartData_Status,
+            backgroundColor: ['#c8973a', '#1a2340', '#10b981', '#ef4444', '#3b82f6'],
+            borderWidth: 0,
+            hoverOffset: 10
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '70%',
+        plugins: { legend: { display: false } }
+    }
+});
+</script>
+</body>
+</html>

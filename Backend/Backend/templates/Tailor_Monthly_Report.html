@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monthly Report – My Tailor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+    .report-card {
+        border: none;
+        border-radius: 14px;
+        padding: 1.5rem;
+        box-shadow: 0 3px 16px rgba(26, 35, 64, .08);
+        background: #fff;
+        height: 100%;
+    }
+    .report-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--mt-navy);
+        line-height: 1.2;
+    }
+    .report-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+    .revenue-card {
+        background: linear-gradient(135deg, var(--mt-navy) 0%, #2a365c 100%);
+        color: #fff;
+    }
+    .revenue-card .report-value {
+        color: var(--mt-gold);
+    }
+    .revenue-card .report-label {
+        color: #e2e8f0;
+    }
+    .expense-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .expense-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .expense-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .expense-icon-box {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-right: 1rem;
+    }
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--mt-navy);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Bar Chart CSS */
+    .bar-chart-container { display: flex; justify-content: space-around; align-items: flex-end; height: 160px; margin-top: 1rem; padding: 0 1rem; }
+    .bar-group { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    .bar-wrapper { width: 45px; height: 110px; background: #f1f5f9; border-radius: 8px; position: relative; overflow: hidden; }
+    .bar { position: absolute; bottom: 0; width: 100%; border-radius: 8px; transition: height 1s cubic-bezier(0.4, 0, 0.2, 1); height: 0; }
+    .pending-bar { background: #f59e0b; }
+    .completed-bar { background: #10b981; }
+    .dispatched-bar { background: #3b82f6; }
+    .bar-label { font-size: 0.8rem; color: #64748b; font-weight: 600; }
+    .bar-value { font-weight: 700; font-size: 1.1rem; color: var(--mt-navy); }
+</style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg mt-navbar sticky-top shadow-sm">
+  <div class="container-fluid px-3">
+    <button class="btn btn-sm me-2 d-lg-none" style="background:rgba(255,255,255,.1);color:#fff;border:none" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button>
+    <a class="navbar-brand" href="{{ url_for('index') }}">My<span>Tailor</span></a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 text-white small">
+        <div class="nav-avatar" style="background:#c8973a;color:#1a2340">{{ name[:1]|upper if name else 'T' }}</div>
+        <span class="d-none d-sm-inline">{{ name or 'Tailor' }}</span>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn btn-sm btn-logout ms-1">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <!-- SIDEBAR -->
+  <div class="mt-sidebar" id="sidebar">
+    <nav class="nav flex-column mt-2">
+      <a href="{{ url_for('tailor_dashboard') }}" class="nav-link"><i class="bi bi-house me-2"></i>Dashboard</a>
+      <a href="{{ url_for('tailor_orders') }}" class="nav-link"><i class="bi bi-clipboard-list me-2"></i>Manage Orders</a>
+      <a href="{{ url_for('tailor_customers') }}" class="nav-link"><i class="bi bi-people me-2"></i>Customers</a>
+      <a href="{{ url_for('tailor_monthly_report') }}" class="nav-link active"><i class="bi bi-file-earmark-bar-graph me-2"></i>Monthly Report</a>
+      <a href="{{ url_for('tailor_detailed_report') }}" class="nav-link"><i class="bi bi-table me-2"></i>Detailed Report</a>
+      <a href="{{ url_for('tailor_profile') }}" class="nav-link"><i class="bi bi-shop me-2"></i>Shop Profile</a>
+      <a href="{{ url_for('logout') }}" class="nav-link"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <div class="flex-grow-1 p-3 p-md-4" style="min-width:0; background: #fafafb;">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 style="font-size: 1.8rem; font-weight: 700; color: var(--mt-navy); margin: 0; font-family: 'Playfair Display', serif;">Monthly Report</h1>
+        <div class="d-flex align-items-center gap-3">
+            <p class="m-0 d-none d-sm-block text-muted fw-bold">Current Month</p>
+            <a href="{{ url_for('tailor_monthly_report_pdf') }}" class="btn btn-gold btn-sm"><i class="bi bi-file-earmark-pdf me-2"></i>Download PDF</a>
+        </div>
+    </div>
+
+    <!-- SUMMARY ROW -->
+    <div class="row g-4 mb-4">
+        <!-- Total Income -->
+        <div class="col-md-2-4 col-sm-6">
+            <div class="report-card" style="border-top: 4px solid #10b981;">
+                <div class="report-label">Total Income</div>
+                <div class="report-value text-success">₹<span class="counter" data-val="{{ total_income }}">0</span></div>
+                <div class="small text-muted mt-2 fw-medium">Gross earnings</div>
+            </div>
+        </div>
+        <!-- Total Expenses -->
+        <div class="col-md-2-4 col-sm-6">
+            <div class="report-card" style="border-top: 4px solid #ef4444;">
+                <div class="report-label">Total Expenses</div>
+                <div class="report-value text-danger">₹<span class="counter" data-val="{{ total_expenses }}">0</span></div>
+                <div class="small text-muted mt-2 fw-medium">Material & labor costs</div>
+            </div>
+        </div>
+        <!-- Net Revenue -->
+        <div class="col-md-2-4 col-sm-6">
+            <div class="report-card" style="border-top: 4px solid #3b82f6;">
+                <div class="report-label">Net Revenue</div>
+                <div class="report-value" style="color: #3b82f6;">₹<span class="counter" data-val="{{ net_revenue }}">0</span></div>
+                <div class="small text-muted mt-2 fw-medium">Profit after expenses</div>
+            </div>
+        </div>
+        <!-- Total Orders -->
+        <div class="col-md-2-4 col-sm-6">
+            <div class="report-card" style="border-top: 4px solid var(--mt-gold);">
+                <div class="report-label">Total Orders</div>
+                <div class="report-value" style="color: var(--mt-gold);"><span class="counter" data-val="{{ pending_orders + completed_orders + dispatched_orders }}">0</span></div>
+                <div class="small text-muted mt-2 fw-medium">Volume processed</div>
+            </div>
+        </div>
+        <!-- Customers -->
+        <div class="col-md-2-4 col-sm-6">
+            <div class="report-card" style="border-top: 4px solid var(--mt-navy);">
+                <div class="report-label">Total Customers</div>
+                <div class="report-value" style="color: var(--mt-navy);"><span class="counter" data-val="{{ customers_count }}">0</span></div>
+                <div class="small text-muted mt-2 fw-medium">Unique reach</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STYLE FOR 5 COLUMNS -->
+    <style>
+        @media (min-width: 768px) {
+            .col-md-2-4 {
+                flex: 0 0 auto;
+                width: 20%;
+            }
+        }
+    </style>
+
+    <div class="row g-4">
+        <!-- ORDER STATUSES & DISTRIBUTION -->
+        <div class="col-lg-12">
+            <div class="report-card">
+                <div class="row g-4 align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="section-title"><i class="bi bi-bar-chart-fill"></i> Shop Performance Distribution</h5>
+                        <div class="bar-chart-container">
+                            <div class="bar-group">
+                                <div class="bar-wrapper"><div class="bar pending-bar" data-height="{{ (pending_orders / (pending_orders + completed_orders + 0.1) * 100)|round }}%"></div></div>
+                                <span class="bar-label">Pending</span>
+                                <span class="bar-value counter" data-val="{{ pending_orders }}">0</span>
+                            </div>
+                            <div class="bar-group">
+                                <div class="bar-wrapper"><div class="bar completed-bar" data-height="{{ (completed_orders / (pending_orders + completed_orders + 0.1) * 100)|round }}%"></div></div>
+                                <span class="bar-label">Completed</span>
+                                <span class="bar-value counter" data-val="{{ completed_orders }}">0</span>
+                            </div>
+                            <div class="bar-group">
+                                <div class="bar-wrapper"><div class="bar dispatched-bar" data-height="{{ (dispatched_orders / (pending_orders + completed_orders + 0.1) * 100)|round }}%"></div></div>
+                                <span class="bar-label">Dispatched</span>
+                                <span class="bar-value counter" data-val="{{ dispatched_orders }}">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 border-start">
+                        <div class="p-3">
+                            <div class="d-flex align-items-center gap-3 mb-4">
+                                <div class="expense-icon-box" style="width: 50px; height: 50px; font-size: 1.3rem; background: rgba(59, 130, 246, 0.1); color: #3b82f6; margin: 0;">
+                                    <i class="bi bi-people-fill"></i>
+                                </div>
+                                <div>
+                                    <div class="report-label mb-0" style="font-size: 0.7rem;">Customer Reach</div>
+                                    <div class="report-value fs-4"><span class="counter" data-val="{{ customers_count }}">0</span></div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="expense-icon-box" style="width: 50px; height: 50px; font-size: 1.3rem; background: rgba(16, 185, 129, 0.1); color: #10b981; margin: 0;">
+                                    <i class="bi bi-check2-circle"></i>
+                                </div>
+                                <div>
+                                    <div class="report-label mb-0" style="font-size: 0.7rem;">Efficiency Rate</div>
+                                    <div class="report-value fs-4">{% if (pending_orders + completed_orders) > 0 %}{{ (completed_orders / (pending_orders + completed_orders) * 100)|round(1) }}{% else %}0{% endif %}%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); document.getElementById('sidebarOverlay').classList.toggle('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('show'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Number Counter Animation
+    const animateValue = (obj, start, end, duration) => {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString('en-IN');
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    };
+
+    // Animate Counters
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-val'), 10) || 0;
+        animateValue(counter, 0, target, 1500);
+    });
+
+    // Animate Bars
+    const bars = document.querySelectorAll('.bar');
+    bars.forEach(bar => {
+        setTimeout(() => {
+            bar.style.height = bar.getAttribute('data-height');
+        }, 300);
+    });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Tailors – My Tailor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg mt-navbar sticky-top shadow-sm">
+  <div class="container-fluid px-3">
+    <button class="btn btn-sm me-2 d-lg-none" style="background:rgba(255,255,255,.1);color:#fff;border:none" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button>
+    <a class="navbar-brand" href="{{ url_for('index') }}">My<span>Tailor</span></a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <div class="nav-avatar" style="background:#6d28d9">AD</div>
+      <a href="{{ url_for('logout') }}" class="btn btn-sm btn-logout ms-1">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <div class="mt-sidebar" id="sidebar">
+    <div class="sidebar-section-label">Admin Panel</div>
+    <nav class="nav flex-column">
+      <a href="{{ url_for('admin_dashboard') }}" class="nav-link"><i class="bi bi-house me-2"></i>Dashboard</a>
+      <a href="{{ url_for('manage_customers') }}" class="nav-link"><i class="bi bi-people me-2"></i>Manage Customers</a>
+      <a href="{{ url_for('manage_tailors') }}" class="nav-link active"><i class="bi bi-scissors me-2"></i>Manage Tailors</a>
+      <a href="{{ url_for('manage_orders') }}" class="nav-link"><i class="bi bi-box-seam me-2"></i>All Orders</a>
+      <a href="{{ url_for('reports') }}" class="nav-link"><i class="bi bi-bar-chart me-2"></i>Reports</a>
+    </nav>
+    <div class="sidebar-section-label">System</div>
+    <nav class="nav flex-column">
+      <a href="{{ url_for('admin_profile') }}" class="nav-link"><i class="bi bi-person-gear me-2"></i>My Profile</a>
+      <a href="{{ url_for('logout') }}" class="nav-link"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+    </nav>
+  </div>
+
+  <div class="flex-grow-1 p-3 p-md-4" style="min-width:0">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+      <h4 style="color:var(--mt-navy);margin:0">Manage Tailors</h4>
+      <button class="btn btn-gold" data-bs-toggle="modal" data-bs-target="#addTailorModal"><i class="bi bi-plus-lg me-1"></i>Add Tailor</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-4">
+        <div class="card stat-card p-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#fdf3e0;color:#b7770f">✂️</div>
+            <div><div class="text-muted small">Total Tailors</div><div class="stat-val" id="totalTailors">{{ stats.total }}</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4">
+        <div class="card stat-card p-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#e6f4ec;color:#2e7d52">⭐</div>
+            <div><div class="text-muted small">Avg. Rating</div><div class="stat-val">{{ stats.avg_rating }}</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="card stat-card p-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#e8f0fe;color:#1a6fa0">📦</div>
+            <div><div class="text-muted small">Orders Handled</div><div class="stat-val">{{ stats.orders }}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER -->
+    <div class="row g-2 mb-3">
+      <div class="col-sm-8"><input type="text" class="form-control" placeholder="Search by name, location or speciality..." oninput="filterTailors(this.value)"></div>
+      <div class="col-sm-4">
+        <select class="form-select" onchange="filterBySpec(this.value)">
+          <option value="">All Specialities</option>
+          <option>Men's Clothing</option><option>Women's Clothing</option>
+          <option>Bridal Wear</option><option>Alterations</option><option>All Types</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-table-wrap">
+      <div class="table-responsive">
+        <table class="table mt-table mb-0">
+          <thead><tr><th>#</th><th>Tailor ID</th><th>Shop Name</th><th>Email</th><th>Location</th><th>Speciality</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="tailorBody">
+            {% for t in tailors %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>#{{ t.tailor_id }}</td>
+              <td><strong>{{ t.shop_name }}</strong></td>
+              <td>{{ t.email }}</td>
+              <td>{{ t.shop_address or '—' }}</td>
+              <td>{{ t.speciality or '—' }}</td>
+              <td>
+                <span class="badge badge-{{ 'done' if t.status == 'Active' else 'pending' }}">{{ t.status or 'Active' }}</span>
+              </td>
+              <td>
+                <div class="d-flex gap-1">
+                    {% if t.status != 'Active' %}
+                    <form action="{{ url_for('admin_activate_tailor', tailor_id=t.tailor_id) }}" method="POST">
+                        <button type="submit" class="btn btn-success btn-sm p-1" title="Activate"><i class="bi bi-check-lg"></i> Activate</button>
+                    </form>
+                    {% endif %}
+                    <form action="{{ url_for('delete_tailor', tailor_id=t.tailor_id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this tailor?');">
+                      <button type="submit" class="btn btn-danger btn-sm p-1" title="Delete"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+            {% if not tailors %}
+            <tr><td colspan="8" class="text-center text-muted py-4">No tailors found.</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TAILOR MODAL -->
+<div class="modal fade" id="addTailorModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-white">Add New Tailor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form id="addTailorForm" method="POST" action="{{ url_for('admin_add_tailor') }}">
+          <div class="row g-3">
+            <div class="col-sm-6"><label class="form-label small fw-500">Shop Name *</label><input type="text" name="shop_name" class="form-control" placeholder="Shop name" required></div>
+            <div class="col-sm-6"><label class="form-label small fw-500">Email *</label><input type="email" name="email" class="form-control" placeholder="email@example.com" required></div>
+            <div class="col-sm-6"><label class="form-label small fw-500">Phone *</label><input type="tel" name="phone" class="form-control" placeholder="9800100000" pattern="[0-9]{10}" title="Please enter exactly 10 digits" inputmode="numeric" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" required></div>
+            <div class="col-sm-6"><label class="form-label small fw-500">Location *</label><input type="text" name="location" class="form-control" placeholder="City, Area" required></div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-500">Genders Supported *</label>
+              <select name="gender_category" class="form-select" required>
+                <option value="Both">Both (Male & Female)</option>
+                <option value="Male">Male Only</option>
+                <option value="Female">Female Only</option>
+              </select>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label small fw-500">Speciality</label>
+              <select name="speciality" class="form-select">
+                <option>Men's Clothing</option><option>Women's Clothing</option>
+                <option>Bridal Wear</option><option>Alterations</option><option>All Types</option>
+              </select>
+            </div>
+            <div class="col-sm-6"><label class="form-label small fw-500">Temporary Password *</label><input type="password" name="password" class="form-control" value="123456" required></div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-gold flex-grow-1">Add Tailor</button>
+            <button type="button" class="btn btn-outline-secondary flex-grow-1" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function filterTailors(q) {
+  document.querySelectorAll('#tailorBody tr').forEach(r => r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none');
+}
+function filterBySpec(s) {
+  document.querySelectorAll('#tailorBody tr').forEach(r => r.style.display = (!s || r.textContent.includes(s)) ? '' : 'none');
+}
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); document.getElementById('sidebarOverlay').classList.toggle('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('show'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account Pending – My Tailor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.activation-card { max-width: 500px; margin: 80px auto; border: none; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+.step-icon { width: 60px; height: 60px; background: var(--mt-navy); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 15px; }
+</style>
+</head>
+<body style="background: #f4f7f6;">
+
+<div class="container">
+    <div class="card activation-card p-4 p-md-5">
+        <div class="text-center mb-4">
+            <div class="step-icon mx-auto"><i class="bi bi-shield-check"></i></div>
+            <h3 class="fw-bold" style="color: var(--mt-navy)">Account Pending Review</h3>
+            <p class="text-muted small">Your account is being reviewed by the administrator.</p>
+        </div>
+
+        <div class="alert alert-info border-0 d-flex align-items-center gap-3 mb-4" style="background: rgba(26, 35, 64, 0.05); color: var(--mt-navy);">
+            <i class="bi bi-info-circle fs-4"></i>
+            <div class="small">
+                Your profile <strong>{{ tailor.shop_name if tailor else 'your shop' }}</strong> is currently <strong>Inactive</strong>.
+                Please contact the platform administrator to activate your account.
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h6 class="fw-bold mb-3 small text-uppercase" style="letter-spacing: 0.1em; color: var(--mt-gold);">Account Summary</h6>
+            {% if tailor %}
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted small">Shop Name</span>
+                <span class="fw-600 small">{{ tailor.shop_name }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted small">Location</span>
+                <span class="fw-600 small">{{ tailor.shop_address or '—' }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted small">Status</span>
+                <span class="badge" style="background:rgba(255,193,7,0.15);color:#b7770f;">Pending Activation</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <p class="text-center small text-muted mb-0">
+            Once activated, your account will appear in customer searches and you can start accepting orders.
+        </p>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('logout') }}" class="btn btn-link text-muted small text-decoration-none">
+                <i class="bi bi-box-arrow-left me-1"></i> Logout
+            </a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

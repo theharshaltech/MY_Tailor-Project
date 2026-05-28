@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Profile – My Tailor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.profile-avatar{width:90px;height:90px;border-radius:50%;background:#6d28d9;color:#fff;font-size:2rem;font-weight:700;display:flex;align-items:center;justify-content:center;border:4px solid rgba(109,40,217,.3)}
+.info-row{display:flex;flex-wrap:wrap;gap:.3rem .5rem;padding:.75rem 0;border-bottom:1px solid #e8e5df;align-items:center}
+.info-row:last-child{border-bottom:none}
+.info-lbl{font-size:.78rem;color:#9e9a92;font-weight:600;text-transform:uppercase;letter-spacing:.4px;min-width:110px}
+.info-val{font-size:.9rem;color:var(--mt-navy);font-weight:500}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<nav class="navbar navbar-expand-lg mt-navbar sticky-top shadow-sm">
+  <div class="container-fluid px-3">
+    <button class="btn btn-sm me-2 d-lg-none" style="background:rgba(255,255,255,.1);color:#fff;border:none" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button>
+    <a class="navbar-brand" href="{{ url_for('index') }}">My<span>Tailor</span></a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 text-white small">
+        <div class="nav-avatar" style="background:#6d28d9">{{ (admin.name or name or 'AD')[:2]|upper }}</div>
+        <span class="d-none d-sm-inline">{{ admin.name if admin else name }}</span>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn btn-sm btn-logout ms-1">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <!-- SIDEBAR -->
+  <div class="mt-sidebar" id="sidebar">
+    <div class="sidebar-section-label">Admin Panel</div>
+    <nav class="nav flex-column">
+      <a href="{{ url_for('admin_dashboard') }}" class="nav-link"><i class="bi bi-house me-2"></i>Dashboard</a>
+      <a href="{{ url_for('manage_customers') }}" class="nav-link"><i class="bi bi-people me-2"></i>Manage Customers</a>
+      <a href="{{ url_for('manage_tailors') }}" class="nav-link"><i class="bi bi-scissors me-2"></i>Manage Tailors</a>
+      <a href="{{ url_for('manage_orders') }}" class="nav-link"><i class="bi bi-box-seam me-2"></i>All Orders</a>
+      <a href="{{ url_for('reports') }}" class="nav-link"><i class="bi bi-bar-chart me-2"></i>Reports</a>
+    </nav>
+    <div class="sidebar-section-label">System</div>
+    <nav class="nav flex-column">
+      <a href="{{ url_for('admin_profile') }}" class="nav-link active"><i class="bi bi-person-gear me-2"></i>My Profile</a>
+      <a href="{{ url_for('logout') }}" class="nav-link"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <div class="flex-grow-1 p-3 p-md-4" style="min-width:0">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+    <h4 class="mb-4" style="color:var(--mt-navy)">Admin Profile</h4>
+
+    <div class="row g-4">
+      <!-- LEFT -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-3 p-4 text-center mb-3">
+          <div class="profile-avatar mx-auto mb-3">
+            {{ (admin.name or name or 'AD')[:2]|upper }}
+          </div>
+          <h5 class="fw-bold mb-1" style="color:var(--mt-navy)">{{ admin.name if admin else name }}</h5>
+          <p class="text-muted small mb-2">{{ admin.email if admin else '—' }}</p>
+          <span class="badge" style="background:#6d28d9;color:#fff;padding:.4rem .9rem;border-radius:999px" class="mb-3">Administrator</span>
+          <div class="mt-3">
+            <button class="btn btn-gold w-100 btn-sm" onclick="toggleEdit()"><i class="bi bi-pencil me-1"></i>Edit Profile</button>
+          </div>
+        </div>
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+          <h6 class="fw-bold mb-3" style="color:var(--mt-navy)">Quick Actions</h6>
+          <a href="{{ url_for('manage_customers') }}" class="btn btn-outline-secondary w-100 btn-sm mb-2">Manage Customers</a>
+          <a href="{{ url_for('manage_tailors') }}" class="btn btn-outline-secondary w-100 btn-sm mb-2">Manage Tailors</a>
+          <a href="{{ url_for('reports') }}" class="btn btn-outline-secondary w-100 btn-sm">View Reports</a>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="col-lg-8">
+        <!-- VIEW MODE -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-3" id="viewMode">
+          <h6 class="fw-bold mb-3" style="color:var(--mt-navy)">Account Information</h6>
+          <div class="info-row"><div class="info-lbl">Admin ID</div><div class="info-val">{{ admin.admin_id if admin else '—' }}</div></div>
+          <div class="info-row"><div class="info-lbl">Full Name</div><div class="info-val">{{ admin.name if admin else '—' }}</div></div>
+          <div class="info-row"><div class="info-lbl">Email</div><div class="info-val">{{ admin.email if admin else '—' }}</div></div>
+          <div class="info-row"><div class="info-lbl">Role</div><div class="info-val"><span class="badge" style="background:#6d28d9;color:#fff">Administrator</span></div></div>
+        </div>
+
+        <!-- EDIT MODE -->
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-3" id="editMode" style="display:none">
+          <h6 class="fw-bold mb-3" style="color:var(--mt-navy)">Edit Profile</h6>
+          <form method="POST" action="{{ url_for('admin_profile') }}">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label small fw-500">Full Name</label>
+                <input type="text" name="name" class="form-control" value="{{ admin.name if admin else '' }}" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-500">Email</label>
+                <input type="email" class="form-control" value="{{ admin.email if admin else '' }}" disabled>
+                <div class="form-text">Email cannot be changed.</div>
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+              <button type="submit" class="btn btn-gold flex-grow-1">Save Changes</button>
+              <button type="button" class="btn btn-outline-secondary" onclick="toggleEdit()">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- CHANGE PASSWORD -->
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+          <h6 class="fw-bold mb-3" style="color:var(--mt-navy)">Change Password</h6>
+          <form method="POST" action="{{ url_for('admin_change_password') }}" onsubmit="return checkPass(event)">
+            <div class="row g-3">
+              <div class="col-sm-6">
+                <label class="form-label small fw-500">Current Password</label>
+                <input type="password" name="current_password" class="form-control" required>
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small fw-500">New Password *</label>
+                <input type="password" name="new_password" id="newPass" class="form-control" required minlength="6">
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label small fw-500">Confirm New Password</label>
+                <input type="password" id="confirmPass" class="form-control" required>
+                <div class="invalid-feedback" id="passErr">Passwords do not match!</div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-gold mt-3">Update Password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('show');document.getElementById('sidebarOverlay').classList.toggle('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('show');document.getElementById('sidebarOverlay').classList.remove('show');}
+function toggleEdit(){
+  const em=document.getElementById('editMode'),vm=document.getElementById('viewMode');
+  [em,vm].forEach(el=>el.style.display=el.style.display==='none'?'block':'none');
+}
+function checkPass(e){
+  const n=document.getElementById('newPass').value,c=document.getElementById('confirmPass').value;
+  const confirmInput=document.getElementById('confirmPass');
+  if(n!==c){
+    e.preventDefault();
+    confirmInput.classList.add('is-invalid');
+    return false;
+  }
+  confirmInput.classList.remove('is-invalid');
+  return true;
+}
+</script>
+</body>
+</html>

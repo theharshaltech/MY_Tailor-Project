@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Place Order – My Tailor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg mt-navbar sticky-top shadow-sm">
+  <div class="container-fluid px-3">
+    <button class="btn btn-sm me-2 d-lg-none" style="background:rgba(255,255,255,.1);color:#fff;border:none" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button>
+    <a class="navbar-brand" href="{{ url_for('index') }}">My<span>Tailor</span></a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <div class="nav-avatar">CU</div>
+      <a href="{{ url_for('logout') }}" class="btn btn-sm btn-logout ms-1">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <div class="mt-sidebar" id="sidebar">
+    <nav class="nav flex-column mt-2">
+      <a href="{{ url_for('customer_dashboard') }}" class="nav-link"><i class="bi bi-house me-2"></i>Dashboard</a>
+      <a href="{{ url_for('place_order') }}" class="nav-link active"><i class="bi bi-plus-circle me-2"></i>Place Order</a>
+      <a href="{{ url_for('find_tailor') }}" class="nav-link"><i class="bi bi-search me-2"></i>Find Tailor</a>
+      <a href="{{ url_for('order_history') }}" class="nav-link"><i class="bi bi-box-seam me-2"></i>My Orders</a>
+      <a href="{{ url_for('measurements') }}" class="nav-link"><i class="bi bi-rulers me-2"></i>Measurements</a>
+      <a href="{{ url_for('customer_profile') }}" class="nav-link"><i class="bi bi-person me-2"></i>My Profile</a>
+      <a href="{{ url_for('logout') }}" class="nav-link"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+    </nav>
+  </div>
+
+  <div class="flex-grow-1 p-3 p-md-4" style="min-width:0">
+    <div class="card border-0 shadow rounded-4 overflow-hidden" style="max-width:720px;margin:0 auto">
+
+      <!-- HEADER -->
+      <div class="auth-left p-4" style="min-height:auto">
+        <div class="auth-left-pattern"></div>
+        <div class="position-relative z-1">
+          <h4 class="text-white mb-1">Place a New Order</h4>
+          <p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.88rem">Fill in the details and submit your tailoring request</p>
+        </div>
+      </div>
+
+      <div class="card-body p-4">
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0" role="alert" style="border-radius:12px">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form id="orderForm" method="POST" action="{{ url_for('place_order') }}" onsubmit="return validateOrder(event)" enctype="multipart/form-data">
+          <div class="row g-3">
+            <!-- TAILOR -->
+            <div class="col-sm-6">
+              <label class="form-label small fw-500">Select Tailor *</label>
+              <select name="tailor" class="form-select" required>
+                <option value="">-- Choose Tailor --</option>
+                {% for t in tailors %}
+                <option value="{{ t.tailor_id }}">{{ t.shop_name }} ⭐ {{ t.rating or '0.0' }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <!-- GENDER -->
+            <div class="col-sm-6">
+              <label class="form-label small fw-500">Gender *</label>
+              <select name="gender" id="gender" class="form-select" required onchange="updateDress()">
+                <option value="">-- Select Gender --</option>
+                <option value="Male" {{ 'selected' if gender == 'Male' else '' }}>Male</option>
+                <option value="Female" {{ 'selected' if gender == 'Female' else '' }}>Female</option>
+              </select>
+            </div>
+            <!-- DRESS TYPE -->
+            <div class="col-sm-6">
+              <label class="form-label small fw-500">Dress Type *</label>
+              <select name="dress_type" id="dressType" class="form-select" required onchange="updatePrice()">
+                <option value="">Select Gender First</option>
+              </select>
+            </div>
+            <!-- FABRIC -->
+            <div class="col-sm-6">
+              <label class="form-label small fw-500">Fabric Type</label>
+              <select name="fabric" class="form-select">
+                <option>Cotton</option><option>Silk</option><option>Linen</option>
+                <option>Polyester</option><option>Wool</option><option>Customer Provided</option>
+              </select>
+            </div>
+            <!-- ORDER DATE -->
+            <div class="col-sm-6">
+              <label class="form-label small fw-500">Order Date *</label>
+              <input type="date" name="order_date" id="orderDate" class="form-control" required>
+            </div>
+            <!-- DELIVERY DATE -->
+            <div class="col-sm-6">
+              <label class="form-label small fw-500">Delivery Date *</label>
+              <input type="date" name="delivery_date" id="deliveryDate" class="form-control" required>
+            </div>
+            <!-- DESIGN UPLOAD -->
+            <div class="col-12">
+              <label class="form-label small fw-500">Design Reference (Optional)</label>
+              <input type="file" name="design_ref" class="form-control" accept="image/*">
+            </div>
+            <!-- NOTES -->
+            <div class="col-12">
+              <label class="form-label small fw-500">Special Instructions</label>
+              <textarea name="notes" class="form-control" rows="2" placeholder="Any special requirements, design details..."></textarea>
+            </div>
+          </div>
+
+          <!-- STATUS PREVIEW -->
+          <div class="d-flex justify-content-between align-items-center p-3 rounded-3 mt-3 mb-3" style="background:#f5f4f0">
+            <div>
+              <div class="text-muted small">Estimated Price</div>
+              <div class="fw-700 fs-5" id="priceDisplay" style="color:var(--mt-gold)">INR 0</div>
+            </div>
+            <div class="text-end">
+              <div class="text-muted small">Order Status</div>
+              <div class="fw-700" style="color:var(--mt-navy)">New Request</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-gold w-100 py-2">Place Order →</button>
+        </form>
+
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const prices = {Shirt:450,Pant:400,Kurta:500,Blazer:1500,Suit:2000,Salwar:550,Lehenga:2500,'Saree Blouse':350,Kurti:400,Gown:2200};
+let orderCount = 0;
+
+// Set minimum order date to today
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('orderDate').setAttribute('min', today);
+document.getElementById('orderDate').value = today;
+
+// Ensure delivery date is not before order date
+document.getElementById('orderDate').addEventListener('change', function() {
+  document.getElementById('deliveryDate').setAttribute('min', this.value);
+});
+
+// Pre-populate dress types based on pre-selected gender
+window.addEventListener('DOMContentLoaded', (event) => {
+    updateDress();
+});
+
+function updateDress() {
+  const g = document.getElementById('gender').value;
+  const dd = document.getElementById('dressType');
+  dd.innerHTML = '';
+  const opts = g==='Male' ? ['Shirt','Pant','Kurta','Blazer','Suit'] : g==='Female' ? ['Salwar','Lehenga','Saree Blouse','Kurti','Gown'] : [];
+  if(!opts.length){dd.innerHTML='<option>Select Gender First</option>';return;}
+  opts.forEach(o=>{const op=document.createElement('option');op.value=op.text=o;dd.appendChild(op);});
+  updatePrice();
+}
+function updatePrice() {
+  const dress = document.getElementById('dressType').value;
+  const price = prices[dress] || 0;
+  document.getElementById('priceDisplay').innerText = 'INR ' + price;
+}
+function validateOrder(e) {
+  const oDate = new Date(document.getElementById('orderDate').value);
+  const dDate = new Date(document.getElementById('deliveryDate').value);
+  
+  if (dDate < oDate) {
+    alert("Delivery date cannot be before the order date.");
+    e.preventDefault();
+    return false;
+  }
+  return true;
+}
+
+// Remove the old placeOrder function that was only doing local table population
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); document.getElementById('sidebarOverlay').classList.toggle('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('show'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+</script>
+</body>
+</html>

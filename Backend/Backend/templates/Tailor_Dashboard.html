@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tailor Dashboard – My Tailor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg mt-navbar sticky-top shadow-sm">
+  <div class="container-fluid px-3">
+    <button class="btn btn-sm me-2 d-lg-none" style="background:rgba(255,255,255,.1);color:#fff;border:none" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button>
+    <a class="navbar-brand" href="{{ url_for('index') }}">My<span>Tailor</span></a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 text-white small">
+        <div class="nav-avatar" style="background:#c8973a;color:#1a2340">{{ name[:1]|upper if name else 'T' }}</div>
+        <span class="d-none d-sm-inline">{{ name or 'Tailor' }}</span>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn btn-sm btn-logout ms-1">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <!-- SIDEBAR -->
+  <div class="mt-sidebar" id="sidebar">
+    <nav class="nav flex-column mt-2">
+      <a href="{{ url_for('tailor_dashboard') }}" class="nav-link active"><i class="bi bi-house me-2"></i>Dashboard</a>
+      <a href="{{ url_for('tailor_orders') }}" class="nav-link"><i class="bi bi-clipboard-list me-2"></i>Manage Orders</a>
+      <a href="{{ url_for('tailor_customers') }}" class="nav-link"><i class="bi bi-people me-2"></i>Customers</a>
+      <a href="{{ url_for('tailor_monthly_report') }}" class="nav-link"><i class="bi bi-file-earmark-bar-graph me-2"></i>Monthly Report</a>
+      <a href="{{ url_for('tailor_detailed_report') }}" class="nav-link"><i class="bi bi-table me-2"></i>Detailed Report</a>
+      <a href="{{ url_for('tailor_profile') }}" class="nav-link"><i class="bi bi-shop me-2"></i>Shop Profile</a>
+      <a href="{{ url_for('logout') }}" class="nav-link"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <div class="flex-grow-1 p-3 p-md-4" style="min-width:0">
+
+    <!-- GREETING -->
+    <div class="greeting-banner text-white rounded-4 p-4 mb-4" data-icon="✂️">
+      <h4 class="mb-1">Welcome, {{ name }} ✂️</h4>
+      <p class="mb-0 small" style="color:rgba(255,255,255,.6)">You have {{ pending_orders }} processing order(s) right now. Keep up the great work!</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="card stat-card p-3 h-100">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#fdf3e0;color:#b7770f">📋</div>
+            <div><div class="text-muted small">Today's Orders</div><div class="stat-val">{{ today_orders }}</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card stat-card p-3 h-100">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#fce8e6;color:#c0392b">⏳</div>
+            <div><div class="text-muted small">Pending</div><div class="stat-val">{{ pending_orders }}</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card stat-card p-3 h-100">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#e6f4ec;color:#2e7d52">✅</div>
+            <div><div class="text-muted small">Completed</div><div class="stat-val">{{ completed_orders }}</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card stat-card p-3 h-100">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon" style="background:#e8f0fe;color:#1a6fa0">👥</div>
+            <div><div class="text-muted small">Customers</div><div class="stat-val">{{ customers_count }}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+
+      <!-- LEFT -->
+      <div class="col-lg-8">
+    {% if notifications %}
+    <div class="section-line-title">Notifications</div>
+    <div class="row g-3 mb-4">
+      {% for n in notifications %}
+      <div class="col-12">
+        <div class="alert alert-info d-flex align-items-center justify-content-between py-2 px-3 mb-2 shadow-sm border-0" style="border-radius:10px; background: #e8f0fe; color: #1a6fa0;">
+          <div class="small"><i class="bi bi-bell-fill me-2"></i>{{ n.message }}</div>
+          <form action="{{ url_for('tailor_read_notification', notification_id=n.notification_id) }}" method="POST" class="m-0">
+            <button type="submit" class="btn btn-sm text-primary p-0 border-0" style="background:transparent; font-size: 0.8rem;">Mark Read</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="section-line-title">New Orders</div>
+        <div class="mt-table-wrap mb-4">
+          <div class="table-responsive">
+            <table class="table mt-table mb-0">
+              <thead><tr><th>Order ID</th><th>Customer</th><th>Dress Type</th><th>Delivery</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                {% if orders %}
+                  {% for order in orders[:5] %}
+                  <tr>
+                    <td><strong>#{{ order.order_id }}</strong></td>
+                    <td>{{ order.customer_name }}</td>
+                    <td>{{ order.dress_type }}</td>
+                    <td>{{ order.delivery_date }}</td>
+                    <td>
+                      {% set s = (order.status or '')|lower %}
+                      {% set bg = 'pending' %}
+                      {% if s == 'in progress' or s == 'accepted' %} {% set bg = 'progress' %} {% endif %}
+                      {% if s == 'completed' %} {% set bg = 'done' %} {% endif %}
+                      {% if s == 'rejected' or s == 'cancelled' %} {% set bg = 'danger' %} {% endif %}
+                      <span class="badge badge-{{ bg }}" id="st{{ order.order_id }}">{{ order.status or 'Pending' }}</span>
+                    </td>
+                    <td>
+                      <div class="d-flex gap-1 flex-wrap">
+                        {% if s == 'pending' %}
+                        <form action="{{ url_for('update_order_status', order_id=order.order_id) }}" method="POST" class="m-0 p-0 d-inline"><input type="hidden" name="status" value="In Progress"><button type="submit" class="btn btn-success btn-sm">Accept</button></form>
+                        <form action="{{ url_for('update_order_status', order_id=order.order_id) }}" method="POST" class="m-0 p-0 d-inline"><input type="hidden" name="status" value="Rejected"><button type="submit" class="btn btn-danger btn-sm">Reject</button></form>
+                        {% elif s == 'in progress' or s == 'accepted' %}
+                        <form action="{{ url_for('update_order_status', order_id=order.order_id) }}" method="POST" class="m-0 p-0 d-inline"><input type="hidden" name="status" value="Completed"><button type="submit" class="btn btn-navy btn-sm">Mark Done</button></form>
+                        {% else %}
+                        <a href="{{ url_for('tailor_orders') }}" class="btn btn-navy btn-sm">View</a>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr><td colspan="7" class="text-center">No orders to display.</td></tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="section-line-title">Customer Measurements</div>
+        <div class="mt-table-wrap">
+          <div class="table-responsive">
+            <table class="table mt-table mb-0">
+              <thead><tr><th>Customer</th><th>Chest</th><th>Waist</th><th>Length</th><th>Shoulder</th><th>Hip</th><th>Sleeve</th></tr></thead>
+              <tbody>
+                {% if recent_measurements %}
+                  {% for m in recent_measurements %}
+                  <tr>
+                    <td><strong>{{ m.name }}</strong></td>
+                    <td>{{ m.chest }} in</td>
+                    <td>{{ m.waist }} in</td>
+                    <td>{{ m.length }} in</td>
+                    <td>{{ m.shoulder }} in</td>
+                    <td>{{ m.hip }} in</td>
+                    <td>{{ m.sleeve }} in</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr><td colspan="7" class="text-center text-muted py-3">No customer measurements recorded yet.</td></tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="col-lg-4">
+        <!-- OPERATIONAL SUMMARY -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+          <div class="card-header bg-white fw-600" style="color:var(--mt-navy)">📊 fulfillment Rate</div>
+          <div class="card-body">
+            <div class="p-3 rounded-3 mb-3" style="background:#e6f4ec">
+              <div class="earnings-big" style="color:#2e7d52">{% if (pending_orders + completed_orders) > 0 %}{{ (completed_orders / (pending_orders + completed_orders) * 100)|round }}{% else %}0{% endif %}%</div>
+              <div class="text-muted small">Success Rate</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEARCH CUSTOMER -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+          <div class="card-header bg-white fw-600" style="color:var(--mt-navy)">🔍 Search Customer</div>
+          <div class="card-body"><input type="text" class="form-control" placeholder="Enter customer name..." oninput="searchCustomer(this.value)"></div>
+        </div>
+
+        <!-- TOP CUSTOMERS -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4">
+          <div class="card-header bg-white fw-600" style="color:var(--mt-navy)">👥 Top Customers</div>
+          <div class="card-body p-2">
+            {% if top_customers %}
+              {% for c in top_customers %}
+              <div class="nearby-card d-flex align-items-center gap-3 p-2 mb-2 rounded-3">
+                <div class="mini-avatar">{{ c.name[:2]|upper }}</div>
+                <div><div class="fw-600 small">{{ c.name }}</div><div class="text-muted" style="font-size:.75rem">{{ c.order_count }} orders</div></div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p class="text-center text-muted small py-3">No top customers yet.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- MAP -->
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+          <div class="card-header bg-white fw-600" style="color:var(--mt-navy)">📍 Shop Location</div>
+          <iframe src="https://maps.google.com/maps?q=Nashik&t=&z=13&ie=UTF8&iwloc=&output=embed" height="200" style="border:0;width:100%" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); document.getElementById('sidebarOverlay').classList.toggle('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('show'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+function updateStatus(id, status) {
+  const el = document.getElementById('st' + id);
+  const map = {'In Progress':'badge-progress','Completed':'badge-done','Rejected':'badge-cancel'};
+  el.className = 'badge ' + (map[status]||'');
+  el.textContent = status;
+  const btn = el.closest('tr').querySelector('td:last-child');
+  if (status === 'Completed') btn.innerHTML = '<button class="btn btn-navy btn-sm">View</button>';
+  else if (status === 'In Progress') btn.innerHTML = `<button class="btn btn-navy btn-sm" onclick="updateStatus('${id}','Completed')">Mark Done</button>`;
+  else btn.innerHTML = '<span class="text-muted small">Rejected</span>';
+}
+function searchCustomer(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('table.mt-table').forEach(table => {
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      const text = tr.textContent.toLowerCase();
+      tr.style.display = text.includes(q) ? '' : 'none';
+    });
+  });
+}
+</script>
+
+</body>
+</html>

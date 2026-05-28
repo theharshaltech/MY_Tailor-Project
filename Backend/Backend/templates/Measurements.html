@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Measurements – My Tailor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+.meas-card{border-radius:14px;border:2px solid #e8e5df;transition:.2s;cursor:pointer;background:#fff}
+.meas-card:hover,.meas-card.active{border-color:var(--mt-gold);background:#fdf3e0}
+.meas-icon{font-size:1.5rem;margin-bottom:.4rem}
+.meas-lbl{font-size:.72rem;color:#9e9a92;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.meas-val{font-size:1.3rem;font-weight:700;color:var(--mt-navy)}
+.meas-unit{font-size:.75rem;color:#9e9a92}
+.body-diagram{position:relative;text-align:center}
+.ref-img{max-width:180px;opacity:.18}
+.tip-box{background:#f5f4f0;border-radius:10px;padding:.8rem 1rem;font-size:.82rem;color:#4a4740;border-left:3px solid var(--mt-gold)}
+.history-row td{font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<nav class="navbar navbar-expand-lg mt-navbar sticky-top shadow-sm">
+  <div class="container-fluid px-3">
+    <button class="btn btn-sm me-2 d-lg-none" style="background:rgba(255,255,255,.1);color:#fff;border:none" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button>
+    <a class="navbar-brand" href="{{ url_for('index') }}">My<span>Tailor</span></a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <div class="nav-avatar">CU</div>
+      <a href="{{ url_for('logout') }}" class="btn btn-sm btn-logout ms-1">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <div class="mt-sidebar" id="sidebar">
+    <nav class="nav flex-column mt-2">
+      <a href="{{ url_for('customer_dashboard') }}" class="nav-link"><i class="bi bi-house me-2"></i>Dashboard</a>
+      <a href="{{ url_for('place_order') }}" class="nav-link"><i class="bi bi-plus-circle me-2"></i>Place Order</a>
+      <a href="{{ url_for('find_tailor') }}" class="nav-link"><i class="bi bi-search me-2"></i>Find Tailor</a>
+      <a href="{{ url_for('order_history') }}" class="nav-link"><i class="bi bi-box-seam me-2"></i>My Orders</a>
+      <a href="{{ url_for('measurements') }}" class="nav-link active"><i class="bi bi-rulers me-2"></i>Measurements</a>
+      <a href="{{ url_for('customer_profile') }}" class="nav-link"><i class="bi bi-person me-2"></i>My Profile</a>
+      <a href="{{ url_for('logout') }}" class="nav-link"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+    </nav>
+  </div>
+
+  <div class="flex-grow-1 p-3 p-md-4" style="min-width:0">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+      <div>
+        <h4 style="color:var(--mt-navy);margin:0">My Measurements</h4>
+        <p class="text-muted small mb-0">Last updated: 01 Apr 2025</p>
+      </div>
+      <button class="btn btn-gold" onclick="toggleEdit()"><i class="bi bi-pencil me-1"></i><span id="editBtnText">Edit Measurements</span></button>
+    </div>
+
+    <div class="row g-4">
+      <!-- LEFT: MEASUREMENT CARDS -->
+      <div class="col-lg-7">
+        <!-- VIEW MODE -->
+        <div id="viewMode">
+          <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4"><div class="meas-card p-3 text-center"><div class="meas-icon">👕</div><div class="meas-lbl">Chest</div><div class="meas-val" id="vChest">{{ meas.chest or '—' }}</div><div class="meas-unit">inches</div></div></div>
+            <div class="col-6 col-md-4"><div class="meas-card p-3 text-center"><div class="meas-icon">⚡</div><div class="meas-lbl">Waist</div><div class="meas-val" id="vWaist">{{ meas.waist or '—' }}</div><div class="meas-unit">inches</div></div></div>
+            <div class="col-6 col-md-4"><div class="meas-card p-3 text-center"><div class="meas-icon">📏</div><div class="meas-lbl">Length</div><div class="meas-val" id="vLength">{{ meas.length or '—' }}</div><div class="meas-unit">inches</div></div></div>
+            <div class="col-6 col-md-4"><div class="meas-card p-3 text-center"><div class="meas-icon">🦾</div><div class="meas-lbl">Shoulder</div><div class="meas-val" id="vShoulder">{{ meas.shoulder or '—' }}</div><div class="meas-unit">inches</div></div></div>
+            <div class="col-6 col-md-4"><div class="meas-card p-3 text-center"><div class="meas-icon">🫀</div><div class="meas-lbl">Hip</div><div class="meas-val" id="vHip">{{ meas.hip or '—' }}</div><div class="meas-unit">inches</div></div></div>
+            <div class="col-6 col-md-4"><div class="meas-card p-3 text-center"><div class="meas-icon">💪</div><div class="meas-lbl">Sleeve</div><div class="meas-val" id="vSleeve">{{ meas.sleeve or '—' }}</div><div class="meas-unit">inches</div></div></div>
+            <div class="col-6 col-md-4"><div class="meas-card p-3 text-center"><div class="meas-icon">🔵</div><div class="meas-lbl">Neck</div><div class="meas-val" id="vNeck">{{ meas.neck or '—' }}</div><div class="meas-unit">inches</div></div></div>
+            <div class="col-6 col-md-4"><div class="meas-card p-3 text-center"><div class="meas-icon">🦵</div><div class="meas-lbl">Inseam</div><div class="meas-val" id="vInseam">{{ meas.inseam or '—' }}</div><div class="meas-unit">inches</div></div></div>
+          </div>
+          <div class="tip-box"><strong>💡 Tip:</strong> Share these measurements with your tailor when placing an order for a perfect fit. You can update them anytime using the Edit button above.</div>
+        </div>
+
+        <!-- EDIT MODE -->
+        <div id="editMode" style="display:none">
+          <div class="card border-0 shadow-sm rounded-3 p-4">
+            <h6 class="fw-bold mb-3" style="color:var(--mt-navy)">Update Your Measurements (in inches)</h6>
+            <form id="measForm" method="POST" action="{{ url_for('measurements') }}" onsubmit="return validateMeasurements(event)">
+              <div class="row g-3">
+                <div class="col-6 col-sm-4">
+                  <label class="form-label small fw-500">Chest *</label>
+                  <div class="input-group"><input type="number" id="fChest" name="chest" class="form-control" step="0.1" min="1" max="100" value="{{ meas.chest or '' }}" required><span class="input-group-text small">in</span></div>
+                </div>
+                <div class="col-6 col-sm-4">
+                  <label class="form-label small fw-500">Waist *</label>
+                  <div class="input-group"><input type="number" id="fWaist" name="waist" class="form-control" step="0.1" min="1" max="100" value="{{ meas.waist or '' }}" required><span class="input-group-text small">in</span></div>
+                </div>
+                <div class="col-6 col-sm-4">
+                  <label class="form-label small fw-500">Length *</label>
+                  <div class="input-group"><input type="number" id="fLength" name="length" class="form-control" step="0.1" min="1" max="100" value="{{ meas.length or '' }}" required><span class="input-group-text small">in</span></div>
+                </div>
+                <div class="col-6 col-sm-4">
+                  <label class="form-label small fw-500">Shoulder</label>
+                  <div class="input-group"><input type="number" id="fShoulder" name="shoulder" class="form-control" step="0.1" min="1" max="100" value="{{ meas.shoulder or '' }}"><span class="input-group-text small">in</span></div>
+                </div>
+                <div class="col-6 col-sm-4">
+                  <label class="form-label small fw-500">Hip</label>
+                  <div class="input-group"><input type="number" id="fHip" name="hip" class="form-control" step="0.1" min="1" max="100" value="{{ meas.hip or '' }}"><span class="input-group-text small">in</span></div>
+                </div>
+                <div class="col-6 col-sm-4">
+                  <label class="form-label small fw-500">Sleeve</label>
+                  <div class="input-group"><input type="number" id="fSleeve" name="sleeve" class="form-control" step="0.1" min="1" max="100" value="{{ meas.sleeve or '' }}"><span class="input-group-text small">in</span></div>
+                </div>
+                <div class="col-6 col-sm-4">
+                  <label class="form-label small fw-500">Neck</label>
+                  <div class="input-group"><input type="number" id="fNeck" name="neck" class="form-control" step="0.1" min="1" max="100" value="{{ meas.neck or '' }}"><span class="input-group-text small">in</span></div>
+                </div>
+                <div class="col-6 col-sm-4">
+                  <label class="form-label small fw-500">Inseam</label>
+                  <div class="input-group"><input type="number" id="fInseam" name="inseam" class="form-control" step="0.1" min="1" max="100" value="{{ meas.inseam or '' }}"><span class="input-group-text small">in</span></div>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-gold flex-grow-1">Save Measurements</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="toggleEdit()">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: GUIDE -->
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-3">
+          <h6 class="fw-bold mb-3" style="color:var(--mt-navy)">📐 How to Take Measurements</h6>
+          <ul class="list-unstyled" style="font-size:.85rem;color:#4a4740">
+            <li class="mb-2"><strong>Chest:</strong> Measure around the fullest part of the chest, keeping tape horizontal.</li>
+            <li class="mb-2"><strong>Waist:</strong> Measure around your natural waistline, keeping tape comfortably loose.</li>
+            <li class="mb-2"><strong>Length:</strong> From shoulder top to desired hemline (shirt/kurta length).</li>
+            <li class="mb-2"><strong>Shoulder:</strong> From one shoulder edge to the other across the back.</li>
+            <li class="mb-2"><strong>Hip:</strong> Around the fullest part of your hips, approx 8 inches below waist.</li>
+            <li class="mb-2"><strong>Sleeve:</strong> From shoulder edge to wrist with arm slightly bent.</li>
+            <li class="mb-2"><strong>Neck:</strong> Around the base of the neck for collar fitting.</li>
+            <li class="mb-0"><strong>Inseam:</strong> From crotch to ankle for trouser/pant fitting.</li>
+          </ul>
+        </div>
+        <div class="card border-0 shadow-sm rounded-3 p-4 mb-3">
+          <h6 class="fw-bold mb-3" style="color:var(--mt-navy)">✂️ Quick Size Chart (Men)</h6>
+          <div class="table-responsive">
+            <table class="table table-sm mb-0" style="font-size:.78rem">
+              <thead class="table-dark"><tr><th>Size</th><th>Chest</th><th>Waist</th><th>Shoulder</th></tr></thead>
+              <tbody>
+                <tr><td>S</td><td>36–38</td><td>30–32</td><td>16–17</td></tr>
+                <tr><td>M</td><td>38–40</td><td>32–34</td><td>17–18</td></tr>
+                <tr><td>L</td><td>40–42</td><td>34–36</td><td>18–19</td></tr>
+                <tr><td>XL</td><td>42–44</td><td>36–38</td><td>19–20</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card border-0 shadow-sm rounded-3 p-4">
+          <h6 class="fw-bold mb-3" style="color:var(--mt-navy)">✂️ Quick Size Chart (Women)</h6>
+          <div class="table-responsive">
+            <table class="table table-sm mb-0" style="font-size:.78rem">
+              <thead class="table-dark"><tr><th>Size</th><th>Bust</th><th>Waist</th><th>Hip</th></tr></thead>
+              <tbody>
+                <tr><td>XS</td><td>31–32</td><td>24–25</td><td>34–35</td></tr>
+                <tr><td>S</td><td>33–34</td><td>26–27</td><td>36–37</td></tr>
+                <tr><td>M</td><td>35–36</td><td>28–29</td><td>38–39</td></tr>
+                <tr><td>L</td><td>37–39</td><td>30–32</td><td>40–42</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="saveToast" class="toast align-items-center text-bg-success border-0" role="alert">
+    <div class="d-flex"><div class="toast-body"><i class="bi bi-check-circle me-2"></i>Measurements saved successfully!</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('show');document.getElementById('sidebarOverlay').classList.toggle('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('show');document.getElementById('sidebarOverlay').classList.remove('show');}
+function toggleEdit(){
+  const em=document.getElementById('editMode'),vm=document.getElementById('viewMode'),btn=document.getElementById('editBtnText');
+  if(em.style.display==='none'){em.style.display='block';vm.style.display='none';btn.textContent='Cancel Edit';}
+  else{em.style.display='none';vm.style.display='block';btn.textContent='Edit Measurements';}
+}
+function validateMeasurements(e) {
+  const fields = ['Chest','Waist','Length','Shoulder','Hip','Sleeve','Neck','Inseam'];
+  let ok = true;
+  fields.forEach(f => {
+    const el = document.getElementById('f'+f);
+    const v = parseFloat(el.value);
+    if (v && (v < 1 || v > 100)) {
+      el.classList.add('is-invalid');
+      ok = false;
+    } else {
+      el.classList.remove('is-invalid');
+    }
+  });
+  if (!ok) {
+    alert("Measurements must be between 1 and 100 inches.");
+    e.preventDefault();
+  }
+  return ok;
+}
+</script>
+</body>
+</html>

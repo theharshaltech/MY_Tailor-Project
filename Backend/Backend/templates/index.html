@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Tailor – Custom Stitching at Your Doorstep</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar navbar-expand-lg mt-navbar sticky-top shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="/">My<span>Tailor</span></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav me-auto ms-3 gap-1">
+        <li class="nav-item"><a class="nav-link active" href="/">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
+        <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
+        <li class="nav-item"><a class="nav-link" href="#tailors">Tailors</a></li>
+      </ul>
+      <div class="d-flex gap-2 mt-2 mt-lg-0">
+        <a href="/Login" class="btn btn-outline-gold btn-sm px-3">Login</a>
+<a href="/Registration" class="btn btn-gold btn-sm px-3">Register</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero-section d-flex align-items-center py-5">
+  <div class="hero-pattern"></div>
+  <div class="hero-glow"></div>
+  <div class="container py-4 position-relative">
+    <div class="row align-items-center gy-5">
+
+      <!-- Left -->
+      <div class="col-lg-6">
+        <div class="hero-label mb-3"><i class="bi bi-star-fill"></i> Trusted by 1,200+ Happy Customers</div>
+        <h1 class="hero-title mb-3">Premium Tailoring,<br><span>Right at Your Doorstep</span></h1>
+        <p class="hero-desc mb-4">Connect with skilled local tailors for custom stitching. Track your orders in real-time, share measurements digitally, and get perfectly fitted clothes.</p>
+        <div class="d-flex flex-wrap gap-3 mb-4">
+          <a href="/Registration" class="btn btn-gold btn-lg px-4">Get Started Free</a>
+          <a href="#how-it-works" class="btn btn-outline-gold btn-lg px-4">How It Works</a>
+        </div>
+        <div class="d-flex gap-4 pt-3 border-top border-white border-opacity-10">
+          <div><div class="hero-stat-num">1,200+</div><div class="hero-stat-lbl">Happy Customers</div></div>
+          <div><div class="hero-stat-num">85+</div><div class="hero-stat-lbl">Skilled Tailors</div></div>
+          <div><div class="hero-stat-num">4.8★</div><div class="hero-stat-lbl">Avg. Rating</div></div>
+        </div>
+      </div>
+
+      <!-- Right – floating card -->
+      <div class="col-lg-5 offset-lg-1">
+        <div class="position-relative">
+          <span class="float-badge">🟢 Tailors Online Now</span>
+          <div class="card hero-card p-3">
+            <p class="fw-bold mb-3" style="color:var(--mt-navy)"><i class="bi bi-scissors me-2" style="color:var(--mt-gold)"></i>Top Tailors Near You</p>
+            <div class="tailor-item d-flex align-items-center gap-3 p-2 mb-2 rounded-3">
+              <div class="mini-avatar">ET</div>
+              <div class="flex-grow-1"><div class="fw-600 small">Elite Tailors</div><div class="text-muted" style="font-size:.75rem">📍 Nashik, MH</div></div>
+              <span class="text-warning fw-bold small">⭐ 4.9</span>
+            </div>
+            <div class="tailor-item d-flex align-items-center gap-3 p-2 mb-2 rounded-3">
+              <div class="mini-avatar">SS</div>
+              <div class="flex-grow-1"><div class="fw-600 small">Style Stitch</div><div class="text-muted" style="font-size:.75rem">📍 Nashik, MH</div></div>
+              <span class="text-warning fw-bold small">⭐ 4.7</span>
+            </div>
+            <div class="tailor-item d-flex align-items-center gap-3 p-2 mb-3 rounded-3">
+              <div class="mini-avatar">FC</div>
+              <div class="flex-grow-1"><div class="fw-600 small">Fashion Craft</div><div class="text-muted" style="font-size:.75rem">📍 Nashik, MH</div></div>
+              <span class="text-warning fw-bold small">⭐ 4.8</span>
+            </div>
+            <a href="/Login" class="btn btn-gold w-100">Find Your Tailor →</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<section class="py-5" id="how-it-works">
+  <div class="container py-3">
+    <p class="text-center fw-bold mb-1" style="color:var(--mt-gold);letter-spacing:2px;font-size:.78rem;text-transform:uppercase">Simple Process</p>
+    <h2 class="text-center mb-2">How My Tailor Works</h2>
+    <p class="text-center text-muted mb-5" style="max-width:500px;margin:0 auto">From registration to delivery in just 4 simple steps.</p>
+    <div class="row g-4">
+      <div class="col-sm-6 col-lg-3">
+        <div class="card step-card h-100 p-4 text-center position-relative">
+          <div class="step-num">01</div>
+          <div class="step-icon mx-auto mb-3">👤</div>
+          <h5 class="mb-2">Register & Login</h5>
+          <p class="text-muted small mb-0">Create your account as customer or tailor in under a minute.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="card step-card h-100 p-4 text-center position-relative">
+          <div class="step-num">02</div>
+          <div class="step-icon mx-auto mb-3">🔍</div>
+          <h5 class="mb-2">Find a Tailor</h5>
+          <p class="text-muted small mb-0">Browse tailors near you, check ratings and specialties.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="card step-card h-100 p-4 text-center position-relative">
+          <div class="step-num">03</div>
+          <div class="step-icon mx-auto mb-3">📏</div>
+          <h5 class="mb-2">Place Your Order</h5>
+          <p class="text-muted small mb-0">Submit measurements, choose dress type, and upload designs.</p>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div class="card step-card h-100 p-4 text-center position-relative">
+          <div class="step-num">04</div>
+          <div class="step-icon mx-auto mb-3">✅</div>
+          <h5 class="mb-2">Track & Receive</h5>
+          <p class="text-muted small mb-0">Monitor order status in real-time and receive on time.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SERVICES ═══ -->
+<section class="py-5" id="services" style="background:var(--mt-navy)">
+  <div class="container py-3">
+    <p class="text-center fw-bold mb-1" style="color:var(--mt-gold2);letter-spacing:2px;font-size:.78rem;text-transform:uppercase">What We Offer</p>
+    <h2 class="text-center text-white mb-2">Our Tailoring Services</h2>
+    <p class="text-center mb-5" style="color:rgba(255,255,255,.5);max-width:500px;margin:0 auto">From traditional ethnic wear to modern western outfits — we stitch it all.</p>
+    <div class="row g-4">
+      <div class="col-sm-6 col-lg-4"><div class="service-card p-4 h-100 rounded-4"><div style="font-size:2.2rem" class="mb-3">👔</div><h5 class="text-white">Men's Clothing</h5><p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.88rem">Shirts, trousers, suits, kurtas, blazers — crafted to perfection.</p></div></div>
+      <div class="col-sm-6 col-lg-4"><div class="service-card p-4 h-100 rounded-4"><div style="font-size:2.2rem" class="mb-3">👗</div><h5 class="text-white">Women's Clothing</h5><p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.88rem">Salwars, lehengas, saree blouses, kurtis, gowns — all crafted beautifully.</p></div></div>
+      <div class="col-sm-6 col-lg-4"><div class="service-card p-4 h-100 rounded-4"><div style="font-size:2.2rem" class="mb-3">🪡</div><h5 class="text-white">Alterations</h5><p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.88rem">Resize, repair or redesign your existing garments with expert hands.</p></div></div>
+      <div class="col-sm-6 col-lg-4"><div class="service-card p-4 h-100 rounded-4"><div style="font-size:2.2rem" class="mb-3">🎽</div><h5 class="text-white">Uniform Stitching</h5><p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.88rem">School, corporate and sports uniforms stitched in bulk with consistency.</p></div></div>
+      <div class="col-sm-6 col-lg-4"><div class="service-card p-4 h-100 rounded-4"><div style="font-size:2.2rem" class="mb-3">💍</div><h5 class="text-white">Bridal Wear</h5><p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.88rem">Exclusive bridal collections with fine fabrics and beautiful embroidery.</p></div></div>
+      <div class="col-sm-6 col-lg-4"><div class="service-card p-4 h-100 rounded-4"><div style="font-size:2.2rem" class="mb-3">🧵</div><h5 class="text-white">Custom Design</h5><p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.88rem">Share a reference photo and our tailors will recreate it perfectly.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURED TAILORS ═══ -->
+<section class="py-5" id="tailors">
+  <div class="container py-3">
+    <p class="text-center fw-bold mb-1" style="color:var(--mt-gold);letter-spacing:2px;font-size:.78rem;text-transform:uppercase">Our Experts</p>
+    <h2 class="text-center mb-2">Featured Tailors</h2>
+    <p class="text-center text-muted mb-5" style="max-width:500px;margin:0 auto">Highly-rated tailors serving customers across your city.</p>
+    <div class="row g-4 justify-content-center">
+      <div class="col-sm-6 col-lg-4">
+        <div class="card tailor-showcase h-100">
+          <div class="tailor-showcase-top">
+            <div class="big-avatar mb-3">ET</div>
+            <h5 class="text-white mb-1">Elite Tailors</h5>
+            <p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.82rem">📍 Nashik, Maharashtra</p>
+          </div>
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-2 mb-2"><span class="text-warning">⭐⭐⭐⭐⭐</span><strong>4.9</strong><span class="text-muted small">(142 reviews)</span></div>
+            <p class="text-muted small mb-3">Speciality: Men's Suits, Kurtas, Uniforms</p>
+            <a href="/Login" class="btn btn-gold w-100 btn-sm">Book Now</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <div class="card tailor-showcase h-100">
+          <div class="tailor-showcase-top">
+            <div class="big-avatar mb-3">SS</div>
+            <h5 class="text-white mb-1">Style Stitch</h5>
+            <p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.82rem">📍 Nashik, Maharashtra</p>
+          </div>
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-2 mb-2"><span class="text-warning">⭐⭐⭐⭐⭐</span><strong>4.7</strong><span class="text-muted small">(98 reviews)</span></div>
+            <p class="text-muted small mb-3">Speciality: Ladies Wear, Bridal, Gowns</p>
+            <a href="{{ url_for('login') }}" class="btn btn-gold w-100 btn-sm">Book Now</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <div class="card tailor-showcase h-100">
+          <div class="tailor-showcase-top">
+            <div class="big-avatar mb-3">FC</div>
+            <h5 class="text-white mb-1">Fashion Craft</h5>
+            <p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.82rem">📍 Nashik, Maharashtra</p>
+          </div>
+          <div class="card-body">
+            <div class="d-flex align-items-center gap-2 mb-2"><span class="text-warning">⭐⭐⭐⭐⭐</span><strong>4.8</strong><span class="text-muted small">(113 reviews)</span></div>
+            <p class="text-muted small mb-3">Speciality: Alterations, Custom Design</p>
+            <a href="{{ url_for('login') }}" class="btn btn-gold w-100 btn-sm">Book Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TESTIMONIALS ═══ -->
+<section class="py-5" style="background:#f5f4f0">
+  <div class="container py-3">
+    <p class="text-center fw-bold mb-1" style="color:var(--mt-gold);letter-spacing:2px;font-size:.78rem;text-transform:uppercase">Customer Stories</p>
+    <h2 class="text-center mb-2">What Our Customers Say</h2>
+    <p class="text-center text-muted mb-5" style="max-width:500px;margin:0 auto">Thousands of customers trust My Tailor for their custom clothing.</p>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card testimonial-card h-100 p-4">
+          <div class="text-warning mb-3">⭐⭐⭐⭐⭐</div>
+          <p class="fst-italic text-muted mb-4">"Got my wedding sherwani stitched through My Tailor. The fit was absolutely perfect and delivery was on time. Highly recommend!"</p>
+          <div class="d-flex align-items-center gap-2"><div class="t-avatar">RK</div><div><div class="fw-600 small">Rahul Kulkarni</div><div class="text-muted" style="font-size:.75rem">Customer, Nashik</div></div></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card testimonial-card h-100 p-4">
+          <div class="text-warning mb-3">⭐⭐⭐⭐⭐</div>
+          <p class="fst-italic text-muted mb-4">"I uploaded my blouse reference and the tailor recreated it perfectly. The digital measurements feature is such a time saver!"</p>
+          <div class="d-flex align-items-center gap-2"><div class="t-avatar">PS</div><div><div class="fw-600 small">Priya Sharma</div><div class="text-muted" style="font-size:.75rem">Customer, Nashik</div></div></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card testimonial-card h-100 p-4">
+          <div class="text-warning mb-3">⭐⭐⭐⭐⭐</div>
+          <p class="fst-italic text-muted mb-4">"As a tailor, this platform has grown my business 3x. I get orders from customers across the city without any marketing effort!"</p>
+          <div class="d-flex align-items-center gap-2"><div class="t-avatar">AM</div><div><div class="fw-600 small">Anil Mhatre</div><div class="text-muted" style="font-size:.75rem">Tailor, Nashik</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section py-5 text-center">
+  <div class="container py-3">
+    <h2 class="text-white mb-3">Ready to Get Started?</h2>
+    <p class="mb-4" style="color:rgba(255,255,255,.6)">Join 1,200+ satisfied customers and 85+ tailors on My Tailor today.</p>
+    <div class="d-flex flex-wrap gap-3 justify-content-center">
+      <a href="/Registration" class="btn btn-gold btn-lg px-5">Register as Customer</a>
+      <a href="/Registration" class="btn btn-outline-gold btn-lg px-5">Join as Tailor</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="py-5">
+  <div class="container">
+    <div class="row gy-4">
+      <div class="col-lg-4">
+        <div class="footer-brand mb-2">MyTailor</div>
+        <p class="mb-0" style="color:rgba(255,255,255,.5);font-size:.86rem">Connecting skilled tailors with customers for custom clothing. Precision stitching at your doorstep.</p>
+      </div>
+      <div class="col-6 col-lg-2">
+        <p class="text-white fw-bold mb-3" style="font-size:.82rem;text-transform:uppercase;letter-spacing:1px">Quick Links</p>
+        <ul class="list-unstyled"><li class="mb-2">
+          <a href="/" class="footer-link">Home</a>
+<a href="/Login" class="footer-link">Login</a>
+<a href="/Registration" class="footer-link">Register</a></li></ul>
+      </div>
+      <div class="col-6 col-lg-3">
+        <p class="text-white fw-bold mb-3" style="font-size:.82rem;text-transform:uppercase;letter-spacing:1px">Services</p>
+        <ul class="list-unstyled"><li class="mb-2"><a href="#" class="footer-link">Men's Clothing</a></li><li class="mb-2"><a href="#" class="footer-link">Women's Clothing</a></li><li class="mb-2"><a href="#" class="footer-link">Bridal Wear</a></li><li><a href="#" class="footer-link">Alterations</a></li></ul>
+      </div>
+      <div class="col-lg-3">
+        <p class="text-white fw-bold mb-3" style="font-size:.82rem;text-transform:uppercase;letter-spacing:1px">Contact</p>
+        <ul class="list-unstyled" style="color:rgba(255,255,255,.5);font-size:.86rem"><li class="mb-2">📧 support@mytailor.in</li><li class="mb-2">📞 +91 98000 00000</li><li>📍 Nashik, Maharashtra</li></ul>
+      </div>
+    </div>
+    <hr style="border-color:rgba(255,255,255,.1)" class="mt-4">
+    <div class="d-flex flex-wrap justify-content-between" style="color:rgba(255,255,255,.4);font-size:.82rem">
+      <span>© 2025 My Tailor. All rights reserved.</span>
+      <span>Made with ❤️ by Shashank</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporting Module – My Tailor</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<style>
+    :root {
+        --mt-navy: #1a2340;
+        --mt-gold: #c8973a;
+        --mt-gold2: #e8b86d;
+        --mt-cream: #faf8f4;
+    }
+    body { background: #f8fafc; font-family: 'DM Sans', sans-serif; }
+    
+    .report-card {
+        border: none;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(26, 35, 64, 0.05);
+        background: #fff;
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+    .report-card:hover { transform: translateY(-3px); }
+    
+    .report-value {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--mt-navy);
+        line-height: 1.2;
+    }
+    .report-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .nav-tabs-premium {
+        border: none;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .nav-tabs-premium .nav-link {
+        border: none;
+        border-radius: 10px;
+        padding: 0.8rem 1.5rem;
+        font-weight: 600;
+        color: #64748b;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        transition: all 0.3s ease;
+    }
+    .nav-tabs-premium .nav-link.active {
+        background: var(--mt-navy);
+        color: var(--mt-gold);
+        box-shadow: 0 4px 12px rgba(26, 35, 64, 0.15);
+    }
+    .nav-tabs-premium .nav-link i { margin-right: 0.5rem; }
+
+    /* Bar Indicators */
+    .bar-chart-container { display: flex; justify-content: space-around; align-items: flex-end; height: 160px; margin-top: 1rem; }
+    .bar-group { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    .bar-wrapper { width: 40px; height: 120px; background: #f1f5f9; border-radius: 10px; position: relative; overflow: hidden; }
+    .bar { position: absolute; bottom: 0; width: 100%; border-radius: 10px; transition: height 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); height: 0; }
+    .pending-bar { background: #f59e0b; }
+    .completed-bar { background: #10b981; }
+    .dispatched-bar { background: #3b82f6; }
+    
+    /* Table Styling */
+    .report-table thead th {
+        background: var(--mt-navy);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        padding: 1.2rem 1rem;
+        border: none;
+    }
+    .report-table tbody td { padding: 1.2rem 1rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+    .summary-row { background: #f8fafc; font-weight: 800; color: var(--mt-navy); border-top: 2px solid var(--mt-gold); }
+
+    .expense-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #f8fafc;
+    }
+    .expense-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+    }
+</style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg mt-navbar sticky-top shadow-sm">
+  <div class="container-fluid px-3">
+    <button class="btn btn-sm me-2 d-lg-none" style="background:rgba(255,255,255,.1);color:#fff;border:none" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button>
+    <a class="navbar-brand" href="{{ url_for('index') }}">My<span>Tailor</span></a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 text-white small">
+        <div class="nav-avatar">{{ name[:1]|upper if name else 'T' }}</div>
+        <span class="d-none d-sm-inline">{{ name or 'Tailor' }}</span>
+      </div>
+      <a href="{{ url_for('logout') }}" class="btn btn-sm btn-logout ms-1">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex">
+  <!-- SIDEBAR -->
+  <div class="mt-sidebar" id="sidebar">
+    <nav class="nav flex-column mt-2">
+      <a href="{{ url_for('tailor_dashboard') }}" class="nav-link"><i class="bi bi-house me-2"></i>Dashboard</a>
+      <a href="{{ url_for('tailor_orders') }}" class="nav-link"><i class="bi bi-clipboard-list me-2"></i>Manage Orders</a>
+      <a href="{{ url_for('tailor_customers') }}" class="nav-link"><i class="bi bi-people me-2"></i>Customers</a>
+      <a href="{{ url_for('tailor_earnings') }}" class="nav-link"><i class="bi bi-cash-coin me-2"></i>Earnings</a>
+      <a href="{{ url_for('tailor_reports') }}" class="nav-link active"><i class="bi bi-file-earmark-bar-graph me-2"></i>Reports</a>
+      <a href="{{ url_for('tailor_profile') }}" class="nav-link"><i class="bi bi-shop me-2"></i>Shop Profile</a>
+      <a href="{{ url_for('logout') }}" class="nav-link"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+    </nav>
+  </div>
+
+  <!-- MAIN -->
+  <div class="flex-grow-1 p-3 p-md-4" style="min-width:0;">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 fw-bold text-navy" style="font-family: 'Playfair Display', serif;">Reporting Module</h1>
+            <p class="text-muted small mb-0">Track your business performance and insights</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-dark btn-sm d-none d-md-block"><i class="bi bi-printer me-2"></i>Print</button>
+            <a href="{{ url_for('tailor_monthly_report_pdf') }}" class="btn btn-gold btn-sm"><i class="bi bi-file-earmark-pdf me-2"></i>Export PDF</a>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs nav-tabs-premium" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab">
+                <i class="bi bi-grid-1x2"></i>Monthly Summary
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="detailed-tab" data-bs-toggle="tab" data-bs-target="#detailed" type="button" role="tab">
+                <i class="bi bi-table"></i>Detailed Reports
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="reportTabsContent">
+        <!-- MONTHLY SUMMARY TAB -->
+        <div class="tab-pane fade show active" id="summary" role="tabpanel">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="report-card" style="border-top: 4px solid #10b981;">
+                        <div class="report-label">Total Income</div>
+                        <div class="report-value text-success">₹ <span class="counter" data-val="{{ income }}">0</span></div>
+                        <p class="small text-muted mt-2">Revenue from completed orders</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="report-card" style="border-top: 4px solid #ef4444;">
+                        <div class="report-label">Total Expenses</div>
+                        <div class="report-value text-danger">₹ <span class="counter" data-val="{{ total_expenses }}">0</span></div>
+                        <p class="small text-muted mt-2">Material & operational costs</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="report-card" style="background: linear-gradient(135deg, var(--mt-navy) 0%, #2a365c 100%); color: #fff;">
+                        <div class="report-label text-white-50">Net Revenue</div>
+                        <div class="report-value text-gold">₹ <span class="counter" data-val="{{ net_revenue }}">0</span></div>
+                        <p class="small mt-2" style="color: rgba(255,255,255,0.6)">Profit after all expenses</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="report-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-navy m-0">Recent Expenses</h5>
+                            <button class="btn btn-sm btn-gold" data-bs-toggle="modal" data-bs-target="#addExpenseModal"><i class="bi bi-plus-lg"></i> Add</button>
+                        </div>
+                        <div class="expense-list-scroll" style="max-height: 300px; overflow-y: auto;">
+                            {% for exp in expenses_rows %}
+                            <div class="expense-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="expense-icon">
+                                        {% if 'Material' in exp.category %}🧵{% elif 'Labor' in exp.category %}👷{% else %}💡{% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold small">{{ exp.category }}</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">{{ exp.date[:10] }}</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-bold text-danger">₹ {{ "{:,.0f}".format(exp.amount) }}</span>
+                                    <form action="{{ url_for('delete_expense', expense_id=exp.expense_id) }}" method="POST" class="m-0" onsubmit="return confirm('Delete this?');">
+                                        <button type="submit" class="btn btn-sm text-muted p-0"><i class="bi bi-x-circle"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if not expenses_rows %}
+                            <p class="text-center text-muted py-4">No expenses recorded.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="report-card">
+                        <h5 class="fw-bold text-navy mb-4">Order Status Distribution</h5>
+                        <div class="bar-chart-container">
+                            <div class="bar-group">
+                                <div class="bar-wrapper"><div class="bar pending-bar" data-height="{{ (status_dist.pending / (totals.total_orders + 0.1) * 100)|round }}%"></div></div>
+                                <span class="fw-bold small mt-2">Pending</span>
+                                <span class="text-navy fw-bold">{{ status_dist.pending }}</span>
+                            </div>
+                            <div class="bar-group">
+                                <div class="bar-wrapper"><div class="bar dispatched-bar" data-height="{{ (status_dist.progress / (totals.total_orders + 0.1) * 100)|round }}%"></div></div>
+                                <span class="fw-bold small mt-2">In Progress</span>
+                                <span class="text-navy fw-bold">{{ status_dist.progress }}</span>
+                            </div>
+                            <div class="bar-group">
+                                <div class="bar-wrapper"><div class="bar completed-bar" data-height="{{ (status_dist.completed / (totals.total_orders + 0.1) * 100)|round }}%"></div></div>
+                                <span class="fw-bold small mt-2">Completed</span>
+                                <span class="text-navy fw-bold">{{ status_dist.completed }}</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="text-muted small">Total Orders</div>
+                                    <div class="h5 fw-bold text-navy mb-0">{{ totals.total_orders }}</div>
+                                </div>
+                                <div class="col-6 border-start">
+                                    <div class="text-muted small">Total Customers</div>
+                                    <div class="h5 fw-bold text-navy mb-0">{{ customers_count }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DETAILED REPORT TAB -->
+        <div class="tab-pane fade" id="detailed" role="tabpanel">
+            <div class="report-card mb-4">
+                <form action="{{ url_for('tailor_reports') }}#detailed" method="GET" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Start Date</label>
+                        <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">End Date</label>
+                        <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date }}">
+                    </div>
+                    <div class="col-md-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-navy btn-sm w-100">Filter</button>
+                        <a href="{{ url_for('tailor_reports') }}#detailed" class="btn btn-light btn-sm">Reset</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="report-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table report-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Orders</th>
+                                <th>Done</th>
+                                <th>Pend</th>
+                                <th>Disp</th>
+                                <th>Cust</th>
+                                <th>Income</th>
+                                <th>Exp</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in report_data %}
+                            <tr>
+                                <td class="fw-bold text-navy">{{ row.date }}</td>
+                                <td>{{ row.total_orders }}</td>
+                                <td><span class="badge bg-success-subtle text-success">{{ row.completed_orders }}</span></td>
+                                <td><span class="badge bg-warning-subtle text-warning">{{ row.pending_orders }}</span></td>
+                                <td><span class="badge bg-info-subtle text-info">{{ row.dispatched_orders }}</span></td>
+                                <td>{{ row.total_customers }}</td>
+                                <td class="text-success fw-bold">₹ {{ "{:,.0f}".format(row.income) }}</td>
+                                <td class="text-danger">₹ {{ "{:,.0f}".format(row.expenses) }}</td>
+                                <td class="fw-bold">₹ {{ "{:,.0f}".format(row.revenue) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="summary-row">
+                                <td>TOTAL</td>
+                                <td>{{ totals.total_orders }}</td>
+                                <td>{{ totals.completed_orders }}</td>
+                                <td>{{ totals.pending_orders }}</td>
+                                <td>{{ totals.dispatched_orders }}</td>
+                                <td>{{ totals.total_customers }}</td>
+                                <td>₹ {{ "{:,.0f}".format(totals.income) }}</td>
+                                <td>₹ {{ "{:,.0f}".format(totals.expenses) }}</td>
+                                <td>₹ {{ "{:,.0f}".format(totals.revenue) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal for Expenses -->
+<div class="modal fade" id="addExpenseModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">Add Expense</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('add_expense') }}" method="POST">
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Category</label>
+                <select name="category" class="form-select" required>
+                    <option value="Material & Fabrics">Material & Fabrics</option>
+                    <option value="Stitching & Labor">Stitching & Labor</option>
+                    <option value="Shop Maintenance">Shop Maintenance</option>
+                    <option value="Electricity & Bills">Electricity & Bills</option>
+                    <option value="Customer Expenses (Alterations/Rework)">Customer Expenses (Alterations/Rework)</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Amount (₹)</label>
+                <input type="number" name="amount" class="form-control" placeholder="0.00" required>
+            </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-navy">Save Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); document.getElementById('sidebarOverlay').classList.toggle('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('show'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if there is a hash in the URL to activate a tab
+    const hash = window.location.hash;
+    if (hash) {
+        const triggerEl = document.querySelector(`.nav-link[data-bs-target="${hash}"]`);
+        if (triggerEl) {
+            bootstrap.Tab.getInstance(triggerEl).show();
+        }
+    }
+
+    // Number Counter Animation
+    const counters = document.querySelectorAll('.counter');
+    counters.forEach(counter => {
+        const target = parseInt(counter.getAttribute('data-val'), 10) || 0;
+        let count = 0;
+        const inc = target / 50;
+        const update = () => {
+            if(count < target) {
+                count += inc;
+                counter.innerText = Math.floor(count).toLocaleString('en-IN');
+                setTimeout(update, 20);
+            } else {
+                counter.innerText = target.toLocaleString('en-IN');
+            }
+        };
+        update();
+    });
+
+    // Bar Animation
+    const bars = document.querySelectorAll('.bar');
+    setTimeout(() => {
+        bars.forEach(bar => {
+            bar.style.height = bar.getAttribute('data-height');
+        });
+    }, 400);
+});
+</script>
+</body>
+</html>

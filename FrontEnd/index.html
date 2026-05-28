@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailor Dashboard - Monthly Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Monthly Report</h1>
+            <p class="date-range">April 1 - April 30, 2026</p>
+        </header>
+
+        <main class="dashboard-grid">
+            <!-- Left Side: Order Status Chart -->
+            <section class="card chart-card">
+                <h2>Order Statuses</h2>
+                <div class="bar-chart-container">
+                    <div class="bar-group">
+                        <div class="bar-wrapper"><div class="bar pending-bar" data-height="60%"></div></div>
+                        <span class="bar-label">Pending</span>
+                        <span class="bar-value" data-val="120">0</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar-wrapper"><div class="bar completed-bar" data-height="85%"></div></div>
+                        <span class="bar-label">Completed</span>
+                        <span class="bar-value" data-val="250">0</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar-wrapper"><div class="bar dispatched-bar" data-height="40%"></div></div>
+                        <span class="bar-label">Dispatched</span>
+                        <span class="bar-value" data-val="85">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Summaries -->
+            <div class="summary-column">
+                <section class="card circular-summary-card">
+                    <h2>Total Orders</h2>
+                    <div class="circular-progress">
+                        <div class="inner-circle">
+                            <span class="total-orders-value" data-val="455">0</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card customers-card">
+                    <h2>Total Customers</h2>
+                    <div class="customers-stats">
+                        <span class="customers-icon">👥</span>
+                        <div class="customers-details">
+                            <span class="total-customers-value" data-val="380">0</span>
+                            <span class="customers-label">Active this month</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Bottom: Expenses Module -->
+            <section class="card expenses-card">
+                <div class="expenses-header">
+                    <h2>Expenses Module</h2>
+                    <div class="total-expense">
+                        <span>Total:</span>
+                        <strong class="total-expense-value" data-val="12450">$0</strong>
+                    </div>
+                </div>
+                <div class="expenses-list">
+                    <div class="expense-item">
+                        <div class="expense-info">
+                            <span class="expense-icon">🧵</span>
+                            <span class="expense-name">Materials & Fabrics</span>
+                        </div>
+                        <span class="expense-cost">$5,200</span>
+                    </div>
+                    <div class="expense-item">
+                        <div class="expense-info">
+                            <span class="expense-icon">✂️</span>
+                            <span class="expense-name">Stitching & Tailoring</span>
+                        </div>
+                        <span class="expense-cost">$3,800</span>
+                    </div>
+                    <div class="expense-item">
+                        <div class="expense-info">
+                            <span class="expense-icon">👷</span>
+                            <span class="expense-name">Labor & Wages</span>
+                        </div>
+                        <span class="expense-cost">$2,450</span>
+                    </div>
+                    <div class="expense-item">
+                        <div class="expense-info">
+                            <span class="expense-icon">💡</span>
+                            <span class="expense-name">Utilities & Rent</span>
+                        </div>
+                        <span class="expense-cost">$1,000</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
