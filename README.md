@@ -37,7 +37,7 @@ MY_TAILOR/
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/MY_TAILOR.git
+git clone https://github.com/theharshaltech/MY_Tailor-Project
 ```
 
 ### 2. Install Requirements
