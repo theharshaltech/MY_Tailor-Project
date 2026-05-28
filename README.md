@@ -73,5 +73,5 @@ Add project screenshots here from the `Images/` folder.
 
 ## Author
 
-Harsh
+Harshal
 MCA Student | Flask Developer
